@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bills Paid by Billionaires — Members App</title>
+<meta name="description" content="People post their bills. Billionaires pay them. Only bill posters pay $14.99/month — givers browse and pay for free.">
+<style>
+:root{--gold:#f5b301;--gold2:#ffd34d;--green:#0b6b3a;--green2:#0e8a4a;--dark:#0b1f14;--cream:#fff8e6;--card:#ffffff}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--cream);color:var(--dark)}
+header{background:linear-gradient(135deg,#0b6b3a,#0a4d2a);color:#fff;padding:14px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+header .brand{font-size:26px;font-weight:900;letter-spacing:.5px}header .brand span{color:var(--gold2)}
+header nav a,header nav button{color:#fff;background:transparent;border:1px solid rgba(255,255,255,.5);border-radius:999px;padding:8px 14px;margin-left:8px;cursor:pointer;font-weight:700;text-decoration:none}
+header nav a.join{background:var(--gold);color:#111;border-color:var(--gold)}
+.ticker{background:var(--gold);color:#111;font-weight:800;padding:10px 16px;white-space:nowrap;overflow:hidden}
+.hero{background:radial-gradient(circle at 30% 20%,#ffd34d,#f5b301 45%,#c98a00);padding:48px 20px;text-align:center}
+.hero h1{font-size:44px;margin:0 0 10px;line-height:1.05}.hero p{font-size:18px;max-width:640px;margin:0 auto 20px}
+.btn{display:inline-block;background:var(--green);color:#fff;border:none;border-radius:999px;padding:14px 26px;font-size:17px;font-weight:800;cursor:pointer;text-decoration:none}
+.btn.gold{background:var(--gold);color:#111}.btn:disabled{opacity:.5;cursor:not-allowed}
+main{max-width:980px;margin:0 auto;padding:24px 16px 60px}
+section{background:var(--card);border:2px solid #ead98a;border-radius:18px;padding:22px;margin:18px 0;box-shadow:0 4px 18px rgba(0,0,0,.06)}
+h2{margin-top:0;color:var(--green)}input,select,textarea{width:100%;padding:11px;border:2px solid #ccc;border-radius:10px;margin:6px 0 12px;font-size:16px}
+label{font-weight:700}.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.bill{border:2px solid #ead98a;border-radius:14px;padding:16px;margin:12px 0;background:#fffdf2}
+.bill .amount{font-size:26px;font-weight:900;color:var(--green)}.bill .meta{color:#555;font-size:14px}
+.badge{display:inline-block;background:var(--gold);border-radius:999px;padding:3px 10px;font-weight:800;font-size:13px}
+.badge.locked{background:#eee}.notice{background:#fff3cd;border:1px solid #f5b301;border-radius:10px;padding:12px;margin:10px 0}
+.hidden{display:none}.muted{color:#666;font-size:14px}
+footer{text-align:center;color:#666;padding:30px 16px}
+@media(max-width:640px){.hero h1{font-size:32px}.row,.row3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">BILLS PAID BY <span>BILLIONAIRES</span></div>
+  <nav>
+    <span id="userChip" class="hidden"></span>
+    <button id="logoutBtn" class="hidden">Log out</button>
+    <a href="#membership" class="join">Join — $14.99/mo</a>
+    <a href="#login">Member Login</a>
+  </nav>
+</header>
+<div class="ticker">✦ REAL BILLS &nbsp;•&nbsp; REAL HELP &nbsp;•&nbsp; ONLY POSTERS PAY $14.99/MO &nbsp;•&nbsp; GIVERS PAY BILLS FOR FREE ✦</div>
+<div class="hero">
+  <h1>Post your bill.<br>Let a billionaire pay it.</h1>
+  <p>Real bills, real people, real help. Posters join for $14.99 a month. Givers browse and pay bills for free — no account needed.</p>
+  <a class="btn gold" id="heroJoin" href="https://buy.stripe.com/4gM6oJfe4b5eaVV6zA3Ru01" target="_blank" rel="noopener">Join &amp; Post My Bill — $14.99/mo</a>
+</div>
+
+<main>
+  <section id="membership">
+    <h2>Membership — only posters pay</h2>
+    <div class="row">
+      <div>
+        <p><span class="badge">$14.99 / month</span></p>
+        <p><strong>Poster Membership</strong> — post your bills all month, cancel anytime. Joining opens secure Stripe Checkout in a new tab.</p>
+        <a class="btn gold" href="https://buy.stripe.com/4gM6oJfe4b5eaVV6zA3Ru01" target="_blank" rel="noopener">Join Now — $14.99/mo</a>
+        <p class="muted">No sales tax. After paying, come back here and tap “I Paid — Verify My Membership”.</p>
+      </div>
+      <div>
+        <p><span class="badge">FREE FOREVER</span></p>
+        <p><strong>Givers</strong> — browse the board and offer to pay a bill for free. No account, no fee.</p>
+        <button class="btn" onclick="document.getElementById('board').scrollIntoView()">Browse the bills</button>
+      </div>
+    </div>
+    <div id="verifyBox" class="notice hidden">
+      <strong>Already paid?</strong>
+      <p>Enter the email you used at Stripe Checkout and we will check your subscription.</p>
+      <input id="verifyEmail" type="email" placeholder="Email used at Stripe Checkout">
+      <button class="btn" id="verifyBtn">I Paid — Verify My Membership</button>
+      <p id="verifyMsg" class="muted"></p>
+    </div>
+    <p id="memberStatus" class="muted">Not logged in.</p>
+  </section>
+
+  <section id="login">
+    <h2>Member Login / Create Account</h2>
+    <p class="muted">Create an account with a username, email and password. Once you log in, you stay logged in for 30 days — even in another window — until you log out or your membership ends.</p>
+    <div class="row">
+      <div>
+        <h3>Create account</h3>
+        <label>Username<input id="regUser" placeholder="your_username"></label>
+        <label>Email<input id="regEmail" type="email" placeholder="you@example.com"></label>
+        <label>Password (8+ characters)<input id="regPass" type="password"></label>
+        <button class="btn" id="registerBtn">Create Account</button>
+        <p id="regMsg" class="muted"></p>
+      </div>
+      <div>
+        <h3>Log in</h3>
+        <label>Username or email<input id="loginUser" placeholder="username or email"></label>
+        <label>Password<input id="loginPass" type="password"></label>
+        <button class="btn" id="loginBtn">Log In</button>
+        <p id="loginMsg" class="muted"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="post">
+    <h2>Post your bill</h2>
+    <div id="postLocked" class="notice"><strong>Posting is locked.</strong> Log in as a member, join for $14.99/month, and verify your membership to unlock posting.</div>
+    <form id="postForm" class="hidden">
+      <label>Anonymous display name<input id="billName" value="Anonymous Member" maxlength="40"></label>
+      <div class="row">
+        <label>Bill title<input id="billTitle" maxlength="120" placeholder="e.g. Electric bill"></label>
+        <label>Amount ($)<input id="billAmount" type="number" min="1" step="0.01" placeholder="120.00"></label>
+      </div>
+      <label>Category<select id="billCat"><option>Rent</option><option>Electric</option><option>Water</option><option>Internet</option><option>Phone</option><option>Medical</option><option>Car</option><option>Groceries</option><option>Other</option></select></label>
+      <label>Your story (optional, no personal details)<textarea id="billStory" maxlength="500" placeholder="Keep it short. Do not include full names, addresses, phone numbers, emails, or account numbers."></textarea></label>
+      <button class="btn gold" type="submit">Post My Bill</button>
+      <p id="postMsg" class="muted"></p>
+    </form>
+    <p class="muted">Location kept private. All bills are shown as examples of real member posts — display name only.</p>
+  </section>
+
+  <section id="board">
+    <h2>The Bills Board</h2>
+    <p class="muted">The board starts empty and fills with real member posts. Givers: tap “Offer help” on any bill — free, no account needed.</p>
+    <div id="bills"><p class="muted">No bills posted yet — be the first member to post one.</p></div>
+  </section>
+
+  <section>
+    <h2>How it works</h2>
+    <div class="row3">
+      <div><strong>1. Posters join</strong><p>Join for $14.99/month, verify your membership, post your bill.</p></div>
+      <div><strong>2. Givers browse</strong><p>Anyone can browse the board and offer to help, free.</p></div>
+      <div><strong>3. Bills get paid</strong><p>Verified bills, masked in public, settled directly — never through a personal account.</p></div>
+    </div>
+  </section>
+</main>
+<footer>Bills Paid by Billionaires — Poster Membership $14.99/month. Givers free. No sales tax.</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+let me = null;
+async function api(path, opts={}) {
+  const r = await fetch(path, {headers:{'Content-Type':'application/json'}, ...opts});
+  const data = await r.json().catch(()=>({}));
+  if (!r.ok) throw new Error(data.error || 'Something went wrong');
+  return data;
+}
+function money(c){ return '$' + (c/100).toFixed(2); }
+async function refreshMe() {
+  const d = await api('/api/auth/me'); me = d.member;
+  const chip = $('userChip'), logout = $('logoutBtn'), status = $('memberStatus');
+  if (me) {
+    chip.textContent = '@' + me.username + ' • ' + me.subscription_status;
+    chip.classList.remove('hidden'); logout.classList.remove('hidden');
+    $('verifyBox').classList.remove('hidden');
+    $('verifyEmail').value = me.email;
+    status.textContent = 'Logged in as @' + me.username + ' — membership: ' + me.subscription_status + (me.subscription_status==='active' ? ' — posting unlocked.' : ' — join and verify to unlock posting.');
+    if (me.subscription_status === 'active') { $('postLocked').classList.add('hidden'); $('postForm').classList.remove('hidden'); }
+    else { $('postLocked').classList.remove('hidden'); $('postForm').classList.add('hidden'); }
+  } else {
+    chip.classList.add('hidden'); logout.classList.add('hidden'); $('verifyBox').classList.add('hidden');
+    status.textContent = 'Not logged in.';
+    $('postLocked').classList.remove('hidden'); $('postForm').classList.add('hidden');
+  }
+}
+async function loadBills() {
+  const d = await api('/api/bills');
+  const el = $('bills');
+  if (!d.bills.length) { el.innerHTML = '<p class="muted">No bills posted yet — be the first member to post one.</p>'; return; }
+  el.innerHTML = d.bills.map(b => `
+    <div class="bill">
+      <div><span class="badge">EXAMPLE / DEMO BILL</span> <span class="badge locked">${b.category}</span></div>
+      <h3>${escapeHtml(b.title)}</h3>
+      <div class="amount">${money(b.amount_cents)}</div>
+      <p class="meta">${escapeHtml(b.display_name)} • Location kept private • ${new Date(b.created_at).toLocaleDateString()}</p>
+      <p>${escapeHtml(b.story || '')}</p>
+      <p><strong>Status:</strong> ${b.status}</p>
+      <button class="btn" onclick="offerHelp('${b.id}')">Offer help — free</button>
+    </div>`).join('');
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+async function offerHelp(id) {
+  const name = prompt('Your display name (anonymous is fine):', 'Anonymous Giver') || 'Anonymous Giver';
+  const msg = prompt('A short message for the poster (optional):', '') || '';
+  try { await api('/api/bills/' + id + '/help', {method:'POST', body: JSON.stringify({giver_name:name, message:msg})}); alert('Thank you — your offer was recorded.'); loadBills(); }
+  catch(e){ alert(e.message); }
+}
+$('registerBtn').onclick = async () => {
+  try { const d = await api('/api/auth/register', {method:'POST', body: JSON.stringify({username:$('regUser').value.trim(), email:$('regEmail').value.trim(), password:$('regPass').value})}); $('regMsg').textContent = 'Welcome, @' + d.member.username + '! Now join for $14.99/month to unlock posting.'; refreshMe(); }
+  catch(e){ $('regMsg').textContent = e.message; }
+};
+$('loginBtn').onclick = async () => {
+  try { await api('/api/auth/login', {method:'POST', body: JSON.stringify({username:$('loginUser').value.trim(), password:$('loginPass').value})}); $('loginMsg').textContent = 'Logged in — you will stay logged in for 30 days.'; refreshMe(); }
+  catch(e){ $('loginMsg').textContent = e.message; }
+};
+$('logoutBtn').onclick = async () => { await api('/api/auth/logout', {method:'POST'}); refreshMe(); };
+$('verifyBtn').onclick = async () => {
+  try { const d = await api('/api/membership/verify', {method:'POST', body: JSON.stringify({email:$('verifyEmail').value.trim()})}); $('verifyMsg').textContent = d.active ? 'Verified — your membership is active. Posting is unlocked!' : 'No active $14.99 subscription found for that email yet. If you just paid, wait a moment and try again.'; refreshMe(); }
+  catch(e){ $('verifyMsg').textContent = e.message; }
+};
+$('postForm').onsubmit = async (e) => {
+  e.preventDefault();
+  try { await api('/api/bills', {method:'POST', body: JSON.stringify({title:$('billTitle').value, amount:$('billAmount').value, category:$('billCat').value, story:$('billStory').value, display_name:$('billName').value})}); $('postMsg').textContent = 'Your bill is live on the board.'; e.target.reset(); $('billName').value='Anonymous Member'; loadBills(); }
+  catch(e){ $('postMsg').textContent = e.message; }
+};
+refreshMe(); loadBills();
+</script>
+</body>
+</html>
